@@ -7,7 +7,9 @@ package file
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -199,12 +201,13 @@ func (f *fileInstance) Parse(record string) error {
 
 	f.Bases = []lib.Record{}
 	offset := 0
-
+	fmt.Println(utils.ColorYellow + "HEADER RECORD VALIDATION STARTED  ..." + utils.ColorReset)
 	// Header Record
 	head, err := f.Header.Parse(record)
 	if err != nil {
 		return err
 	}
+	fmt.Println(utils.ColorGreen + "HEADER RECORD VALIDATION COMPLETED WITH NO ERRORS" + utils.ColorReset)
 	offset += head
 
 	// Data Record
@@ -215,20 +218,28 @@ func (f *fileInstance) Parse(record string) error {
 		} else {
 			base = lib.NewBaseSegment()
 		}
+		count := strconv.Itoa(len(f.Bases) + 1)
 
+		if utils.IsTrailerRecord(record[offset:]) {
+			break
+		}
+		fmt.Println(utils.ColorYellow + "DATA RECORD-" + count + " VALIDATION STARTED  ..." + utils.ColorReset)
 		if offset <= 0 || len(record) <= offset {
 			return utils.NewErrSegmentLength("base record")
 		}
 
 		read, err := base.Parse(record[offset:])
 		if err != nil {
-			break
+			fmt.Println(utils.ColorRed + "DATA RECORD-" + count)
+			return err
 		}
+		fmt.Println(utils.ColorGreen + "DATA RECORD-" + count + " VALIDATION COMPLETED WITH NO ERRORS" + utils.ColorReset)
 		f.Bases = append(f.Bases, base)
 		offset += read
 	}
 
 	// Trailer Record
+	fmt.Println(utils.ColorYellow + "TRAILER RECORD VALIDATION STARTED  ..." + utils.ColorReset)
 	if offset <= 0 || len(record) <= offset {
 		return utils.NewErrSegmentLength("trailer record")
 	}
@@ -236,6 +247,8 @@ func (f *fileInstance) Parse(record string) error {
 	if err != nil {
 		return err
 	}
+	fmt.Println(utils.ColorGreen + "TRAILER RECORD VALIDATION COMPLETED WITH NO ERRORS" + utils.ColorReset)
+
 	offset += tread
 
 	if offset != len(record) {

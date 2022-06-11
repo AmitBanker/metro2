@@ -6,19 +6,24 @@ package main
 
 import (
 	"bytes"
+	"flag"
+	"fmt"
+	"github.com/moov-io/metro2/pkg/utils"
+	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/moov-io/metro2/pkg/utils"
-	"github.com/spf13/cobra"
 )
 
 var testJsonFilePath = ""
 
 func TestMain(m *testing.M) {
+	fileName := flag.String("file", "unpacked_variable_file.dat", "pass metro file name to be validated")
+	flag.Parse()
+	file := *fileName
+
 	initRootCmd()
-	testJsonFilePath = filepath.Join("..", "..", "test", "testdata", "packed_file.json")
+	testJsonFilePath = filepath.Join("..", "..", "test", "testdata", file)
 	os.Exit(m.Run())
 }
 
@@ -112,9 +117,10 @@ func TestPrintUnknown(t *testing.T) {
 }
 
 func TestValidator(t *testing.T) {
+	fmt.Println("File to be validate :: " + testJsonFilePath)
 	_, err := executeCommand(rootCmd, "validator", "--input", testJsonFilePath)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Error(utils.ColorRed + err.Error())
 	}
 }
 

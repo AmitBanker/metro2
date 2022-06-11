@@ -59,8 +59,7 @@ var Validate = &cobra.Command{
 			return err
 		}
 
-		fmt.Println("the file is valid")
-
+		fmt.Println(utils.ColorGreen + "the file is valid" + utils.ColorReset)
 		return nil
 	},
 }

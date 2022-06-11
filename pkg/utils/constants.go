@@ -19,8 +19,15 @@ const (
 	packedRecordLength = 366
 	// Header identifier
 	headerIdentifier = "HEADER"
+	// Trailer indentifier
+	trailerIdentifier = "TRAILER"
 	// Json format
 	MessageJsonFormat = "json"
 	// Metro format
 	MessageMetroFormat = "metro"
+
+	ColorRed    = "\033[31m"
+	ColorGreen  = "\033[32m"
+	ColorYellow = "\033[33m"
+	ColorReset  = "\033[0m"
 )
