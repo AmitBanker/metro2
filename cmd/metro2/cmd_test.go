@@ -6,7 +6,6 @@ package main
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"github.com/moov-io/metro2/pkg/utils"
 	"github.com/spf13/cobra"
@@ -18,13 +17,11 @@ import (
 var testJsonFilePath = ""
 
 func TestMain(m *testing.M) {
-	fileName := flag.String("file", "unpacked_variable_file.dat", "pass metro file name to be validated")
-	flag.Parse()
-	file := *fileName
 
 	initRootCmd()
-	testJsonFilePath = filepath.Join("..", "..", "test", "testdata", file)
+	testJsonFilePath = filepath.Join("..", "..", "test", "testdata", "test_file.txt")
 	os.Exit(m.Run())
+
 }
 
 func executeCommandC(root *cobra.Command, args ...string) (c *cobra.Command, output string, err error) {
