@@ -212,6 +212,9 @@ func (f *fileInstance) Parse(record string) error {
 
 	// Data Record
 	for err == nil {
+		if utils.IsTrailerRecord(record[offset:]) {
+			break
+		}
 		var base lib.Record
 		if f.format == utils.PackedFileFormat {
 			base = lib.NewPackedBaseSegment()
@@ -220,9 +223,6 @@ func (f *fileInstance) Parse(record string) error {
 		}
 		count := strconv.Itoa(len(f.Bases) + 1)
 
-		if utils.IsTrailerRecord(record[offset:]) {
-			break
-		}
 		fmt.Println(utils.ColorYellow + "DATA RECORD-" + count + " VALIDATION STARTED  ..." + utils.ColorReset)
 		if offset <= 0 || len(record) <= offset {
 			return utils.NewErrSegmentLength("base record")
