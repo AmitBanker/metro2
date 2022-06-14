@@ -49,12 +49,7 @@ var Validate = &cobra.Command{
 	Short: "Validate metro file",
 	Long:  "Validate an incoming metro file",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		f, err := file.CreateFile([]byte(rawData))
-		if err != nil {
-			return err
-		}
-
-		err = f.Validate()
+		_, err := file.CreateFile([]byte(rawData))
 		if err != nil {
 			return err
 		}

@@ -117,7 +117,7 @@ func TestValidator(t *testing.T) {
 	fmt.Println("File to be validate :: " + testJsonFilePath)
 	_, err := executeCommand(rootCmd, "validator", "--input", testJsonFilePath)
 	if err != nil {
-		t.Error(utils.ColorRed + err.Error())
+		t.Error(utils.ColorRed + err.Error() + utils.ColorReset)
 	}
 }
 
