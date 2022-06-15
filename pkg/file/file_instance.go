@@ -193,62 +193,25 @@ func (f *fileInstance) Validate() error {
 	return nil
 }
 
+var noOfRecords int
+var noOfErrorRecords int
+var isErrorPresent bool
+var allErrors []string
+
 // Parse attempts to initialize a *File object assuming the input is valid raw data in array of lines.
 func (f *fileInstance) Parse(lines []string) error {
 
-	f.Bases = []lib.Record{}
-
-	noOfRecords := 0
-	noOfErrorRecords := 0
-	isErrorPresent := false
-	var allErrors []string
+	noOfRecords = 0
+	noOfErrorRecords = 0
+	isErrorPresent = false
 
 	for i := 0; i < len(lines); i++ {
-
 		if utils.IsHeaderRecord(lines[i]) {
-			// Header Record
-			fmt.Println(utils.ColorYellow + "HEADER RECORD VALIDATION STARTED  ..." + utils.ColorReset)
-			_, err := f.Header.Parse(lines[i])
-			if err != nil {
-				isErrorPresent = true
-				allErrors = append(allErrors, err.Error())
-				fmt.Println(utils.ColorRed + err.Error() + utils.ColorReset)
-			} else {
-				fmt.Println(utils.ColorGreen + "HEADER RECORD VALIDATION COMPLETED WITH NO ERRORS" + utils.ColorReset)
-			}
+			f.parseAndValidateHeaderRecord(lines[i])
 		} else if utils.IsTrailerRecord(lines[i]) {
-			// Trailer Record
-			fmt.Println(utils.ColorYellow + "TRAILER RECORD VALIDATION STARTED  ..." + utils.ColorReset)
-			_, err := f.Trailer.Parse(lines[i])
-			if err != nil {
-				isErrorPresent = true
-				allErrors = append(allErrors, err.Error())
-				fmt.Println(utils.ColorRed + err.Error() + utils.ColorReset)
-			} else {
-				fmt.Println(utils.ColorGreen + "TRAILER RECORD VALIDATION COMPLETED WITH NO ERRORS" + utils.ColorReset)
-			}
+			f.parseAndValidateTrailerRecord(lines[i])
 		} else {
-			// Data Record
-			noOfRecords++
-			var base lib.Record
-			if f.format == utils.PackedFileFormat {
-				base = lib.NewPackedBaseSegment()
-			} else {
-				base = lib.NewBaseSegment()
-			}
-
-			fmt.Println(utils.ColorYellow + "DATA RECORD-" + strconv.Itoa(i) + " VALIDATION STARTED  ..." + utils.ColorReset)
-			_, err := base.Parse(lines[i])
-			if err != nil {
-				isErrorPresent = true
-				noOfErrorRecords++
-				s := "DATA RECORD-" + strconv.Itoa(i) + " " + err.Error()
-				allErrors = append(allErrors, s)
-				fmt.Println(utils.ColorRed + s + utils.ColorReset)
-			} else {
-				fmt.Println(utils.ColorGreen + "DATA RECORD-" + strconv.Itoa(i) + " VALIDATION COMPLETED WITH NO ERRORS" + utils.ColorReset)
-			}
-			f.Bases = append(f.Bases, base)
+			f.parseAndValidateDataRecord(lines[i], i)
 		}
 	}
 
@@ -265,8 +228,95 @@ func (f *fileInstance) Parse(lines []string) error {
 	} else {
 		fmt.Println(utils.ColorRed + "THE FILE IS INVALID" + utils.ColorReset)
 	}
-
 	return nil
+}
+
+// Header Record Parse
+func (f *fileInstance) parseAndValidateHeaderRecord(record string) {
+	fmt.Println(utils.ColorYellow + "HEADER RECORD VALIDATION STARTED  ..." + utils.ColorReset)
+	headerError := false
+
+	_, err := f.Header.Parse(record)
+	if err != nil {
+		isErrorPresent = true
+		headerError = true
+		allErrors = append(allErrors, err.Error())
+		fmt.Println(utils.ColorRed + err.Error() + utils.ColorReset)
+	}
+
+	err = f.Header.Validate()
+	if err != nil {
+		isErrorPresent = true
+		headerError = true
+		allErrors = append(allErrors, err.Error())
+		fmt.Println(utils.ColorRed + err.Error() + utils.ColorReset)
+	}
+
+	if !headerError {
+		fmt.Println(utils.ColorGreen + "HEADER RECORD VALIDATION COMPLETED WITH NO ERRORS" + utils.ColorReset)
+	}
+}
+
+// Trailer Record Parse
+func (f *fileInstance) parseAndValidateTrailerRecord(record string) {
+	fmt.Println(utils.ColorYellow + "TRAILER RECORD VALIDATION STARTED  ..." + utils.ColorReset)
+	trailerError := false
+
+	_, err := f.Trailer.Parse(record)
+	if err != nil {
+		isErrorPresent = true
+		trailerError = true
+		allErrors = append(allErrors, err.Error())
+		fmt.Println(utils.ColorRed + err.Error() + utils.ColorReset)
+	}
+
+	err = f.Trailer.Validate()
+	if err != nil {
+		isErrorPresent = true
+		trailerError = true
+		allErrors = append(allErrors, err.Error())
+		fmt.Println(utils.ColorRed + err.Error() + utils.ColorReset)
+	}
+
+	if !trailerError {
+		fmt.Println(utils.ColorGreen + "TRAILER RECORD VALIDATION COMPLETED WITH NO ERRORS" + utils.ColorReset)
+	}
+}
+
+func (f *fileInstance) parseAndValidateDataRecord(record string, recordNo int) {
+
+	f.Bases = []lib.Record{}
+	noOfRecords++
+	var base lib.Record
+	if f.format == utils.PackedFileFormat {
+		base = lib.NewPackedBaseSegment()
+	} else {
+		base = lib.NewBaseSegment()
+	}
+
+	fmt.Println(utils.ColorYellow + "DATA RECORD-" + strconv.Itoa(recordNo) + " VALIDATION STARTED  ..." + utils.ColorReset)
+	_, err := base.Parse(record)
+	if err != nil {
+		isErrorPresent = true
+		noOfErrorRecords++
+		s := "DATA RECORD-" + strconv.Itoa(recordNo) + " " + err.Error()
+		allErrors = append(allErrors, s)
+		fmt.Println(utils.ColorRed + s + utils.ColorReset)
+	} else {
+
+	}
+
+	err = base.Validate()
+	if err != nil {
+		isErrorPresent = true
+		noOfErrorRecords++
+		s := "DATA RECORD-" + strconv.Itoa(recordNo) + " " + err.Error()
+		allErrors = append(allErrors, s)
+		fmt.Println(utils.ColorRed + s + utils.ColorReset)
+	}
+	f.Bases = append(f.Bases, base)
+
+	fmt.Println(utils.ColorGreen + "DATA RECORD-" + strconv.Itoa(recordNo) + " VALIDATION COMPLETED WITH NO ERRORS" + utils.ColorReset)
 }
 
 // String writes the File struct to raw string.
