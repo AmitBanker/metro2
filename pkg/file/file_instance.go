@@ -323,6 +323,7 @@ func (f *fileInstance) parseAndValidateTrailerRecord(record string) {
 		fromField := fromFields.FieldByName(fieldName)
 		toField := toFields.FieldByName(fieldName)
 		if !fromField.IsValid() || !toField.IsValid() {
+			trailerError = true
 			s := utils.NewErrInvalidValueOfField(fieldName, "trailer record").Error()
 			if !contains(allErrors, s) {
 				allErrors = append(allErrors, s)
@@ -330,6 +331,7 @@ func (f *fileInstance) parseAndValidateTrailerRecord(record string) {
 			}
 		}
 		if fromField.Interface() != toField.Convert(fromField.Type()).Interface() {
+			trailerError = true
 			s := utils.NewErrInvalidValueOfField(fieldName, "trailer record").Error()
 			if !contains(allErrors, s) {
 				allErrors = append(allErrors, s)
