@@ -200,7 +200,6 @@ func (f *fileInstance) Parse(lines []string) error {
 
 	noOfRecords := 0
 	noOfErrorRecords := 0
-	offset := 0
 	isErrorPresent := false
 	var allErrors []string
 
@@ -209,7 +208,7 @@ func (f *fileInstance) Parse(lines []string) error {
 		if utils.IsHeaderRecord(lines[i]) {
 			// Header Record
 			fmt.Println(utils.ColorYellow + "HEADER RECORD VALIDATION STARTED  ..." + utils.ColorReset)
-			head, err := f.Header.Parse(lines[i])
+			_, err := f.Header.Parse(lines[i])
 			if err != nil {
 				isErrorPresent = true
 				allErrors = append(allErrors, err.Error())
@@ -217,15 +216,10 @@ func (f *fileInstance) Parse(lines []string) error {
 			} else {
 				fmt.Println(utils.ColorGreen + "HEADER RECORD VALIDATION COMPLETED WITH NO ERRORS" + utils.ColorReset)
 			}
-			offset += head
 		} else if utils.IsTrailerRecord(lines[i]) {
 			// Trailer Record
 			fmt.Println(utils.ColorYellow + "TRAILER RECORD VALIDATION STARTED  ..." + utils.ColorReset)
-			tread, err := f.Trailer.Parse(lines[i])
-			if offset <= 0 || len(lines[i]) <= offset {
-				allErrors = append(allErrors, utils.NewErrSegmentLength("trailer record").Error())
-				fmt.Println(utils.ColorRed + utils.NewErrSegmentLength("trailer record").Error() + utils.ColorReset)
-			}
+			_, err := f.Trailer.Parse(lines[i])
 			if err != nil {
 				isErrorPresent = true
 				allErrors = append(allErrors, err.Error())
@@ -233,7 +227,6 @@ func (f *fileInstance) Parse(lines []string) error {
 			} else {
 				fmt.Println(utils.ColorGreen + "TRAILER RECORD VALIDATION COMPLETED WITH NO ERRORS" + utils.ColorReset)
 			}
-			offset += tread
 		} else {
 			// Data Record
 			noOfRecords++
@@ -245,14 +238,7 @@ func (f *fileInstance) Parse(lines []string) error {
 			}
 
 			fmt.Println(utils.ColorYellow + "DATA RECORD-" + strconv.Itoa(i) + " VALIDATION STARTED  ..." + utils.ColorReset)
-			if offset <= 0 || len(lines[i]) <= offset {
-				isErrorPresent = true
-				s := "DATA RECORD-" + strconv.Itoa(i) + " " + utils.NewErrSegmentLength("base record").Error()
-				allErrors = append(allErrors, s)
-				fmt.Println(utils.ColorRed + s + utils.ColorReset)
-			}
-
-			read, err := base.Parse(lines[i])
+			_, err := base.Parse(lines[i])
 			if err != nil {
 				isErrorPresent = true
 				noOfErrorRecords++
@@ -262,7 +248,6 @@ func (f *fileInstance) Parse(lines []string) error {
 				fmt.Println(utils.ColorGreen + "DATA RECORD-" + strconv.Itoa(i) + " VALIDATION COMPLETED WITH NO ERRORS" + utils.ColorReset)
 			}
 			f.Bases = append(f.Bases, base)
-			offset += read
 		}
 	}
 
