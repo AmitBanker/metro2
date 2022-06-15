@@ -8,14 +8,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/moov-io/base/log"
+	"github.com/moov-io/metro2/pkg/lib"
+	"github.com/moov-io/metro2/pkg/utils"
 	"reflect"
 	"strconv"
 	"strings"
 	"unicode"
-
-	"github.com/moov-io/base/log"
-	"github.com/moov-io/metro2/pkg/lib"
-	"github.com/moov-io/metro2/pkg/utils"
 )
 
 // File contains the structures of a parsed metro 2 file.
@@ -240,16 +239,20 @@ func (f *fileInstance) parseAndValidateHeaderRecord(record string) {
 	if err != nil {
 		isErrorPresent = true
 		headerError = true
-		allErrors = append(allErrors, err.Error())
-		fmt.Println(utils.ColorRed + err.Error() + utils.ColorReset)
+		if !contains(allErrors, err.Error()) {
+			allErrors = append(allErrors, err.Error())
+			fmt.Println(utils.ColorRed + err.Error() + utils.ColorReset)
+		}
 	}
 
 	err = f.Header.Validate()
 	if err != nil {
 		isErrorPresent = true
 		headerError = true
-		allErrors = append(allErrors, err.Error())
-		fmt.Println(utils.ColorRed + err.Error() + utils.ColorReset)
+		if !contains(allErrors, err.Error()) {
+			allErrors = append(allErrors, err.Error())
+			fmt.Println(utils.ColorRed + err.Error() + utils.ColorReset)
+		}
 	}
 
 	if !headerError {
@@ -266,16 +269,20 @@ func (f *fileInstance) parseAndValidateTrailerRecord(record string) {
 	if err != nil {
 		isErrorPresent = true
 		trailerError = true
-		allErrors = append(allErrors, err.Error())
-		fmt.Println(utils.ColorRed + err.Error() + utils.ColorReset)
+		if !contains(allErrors, err.Error()) {
+			allErrors = append(allErrors, err.Error())
+			fmt.Println(utils.ColorRed + err.Error() + utils.ColorReset)
+		}
 	}
 
 	err = f.Trailer.Validate()
 	if err != nil {
 		isErrorPresent = true
 		trailerError = true
-		allErrors = append(allErrors, err.Error())
-		fmt.Println(utils.ColorRed + err.Error() + utils.ColorReset)
+		if !contains(allErrors, err.Error()) {
+			allErrors = append(allErrors, err.Error())
+			fmt.Println(utils.ColorRed + err.Error() + utils.ColorReset)
+		}
 	}
 
 	if !trailerError {
@@ -298,25 +305,36 @@ func (f *fileInstance) parseAndValidateDataRecord(record string, recordNo int) {
 	_, err := base.Parse(record)
 	if err != nil {
 		isErrorPresent = true
-		noOfErrorRecords++
 		s := "DATA RECORD-" + strconv.Itoa(recordNo) + " " + err.Error()
-		allErrors = append(allErrors, s)
-		fmt.Println(utils.ColorRed + s + utils.ColorReset)
-	} else {
-
+		if !contains(allErrors, s) {
+			noOfErrorRecords++
+			allErrors = append(allErrors, s)
+			fmt.Println(utils.ColorRed + s + utils.ColorReset)
+		}
 	}
 
 	err = base.Validate()
 	if err != nil {
 		isErrorPresent = true
-		noOfErrorRecords++
 		s := "DATA RECORD-" + strconv.Itoa(recordNo) + " " + err.Error()
-		allErrors = append(allErrors, s)
-		fmt.Println(utils.ColorRed + s + utils.ColorReset)
+		if !contains(allErrors, s) {
+			noOfErrorRecords++
+			allErrors = append(allErrors, s)
+			fmt.Println(utils.ColorRed + s + utils.ColorReset)
+		}
 	}
 	f.Bases = append(f.Bases, base)
-
+	
 	fmt.Println(utils.ColorGreen + "DATA RECORD-" + strconv.Itoa(recordNo) + " VALIDATION COMPLETED WITH NO ERRORS" + utils.ColorReset)
+}
+
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
 
 // String writes the File struct to raw string.
