@@ -289,6 +289,7 @@ func (f *fileInstance) parseAndValidateTrailerRecord(record string) {
 	if f.format == utils.PackedFileFormat {
 		information, err = f.generatorPackedTrailer()
 		if err != nil {
+			isErrorPresent = true
 			trailerError = true
 			if !contains(allErrors, err.Error()) {
 				allErrors = append(allErrors, err.Error())
@@ -298,6 +299,7 @@ func (f *fileInstance) parseAndValidateTrailerRecord(record string) {
 	} else {
 		information, err = f.generatorTrailer()
 		if err != nil {
+			isErrorPresent = true
 			trailerError = true
 			if !contains(allErrors, err.Error()) {
 				allErrors = append(allErrors, err.Error())
@@ -323,6 +325,7 @@ func (f *fileInstance) parseAndValidateTrailerRecord(record string) {
 		fromField := fromFields.FieldByName(fieldName)
 		toField := toFields.FieldByName(fieldName)
 		if !fromField.IsValid() || !toField.IsValid() {
+			isErrorPresent = true
 			trailerError = true
 			s := utils.NewErrInvalidValueOfField(fieldName, "trailer record").Error()
 			if !contains(allErrors, s) {
@@ -331,6 +334,7 @@ func (f *fileInstance) parseAndValidateTrailerRecord(record string) {
 			}
 		}
 		if fromField.Interface() != toField.Convert(fromField.Type()).Interface() {
+			isErrorPresent = true
 			trailerError = true
 			s := utils.NewErrInvalidValueOfField(fieldName, "trailer record").Error()
 			if !contains(allErrors, s) {
