@@ -9,52 +9,28 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/moov-io/metro2/pkg/file"
-	"github.com/moov-io/metro2/pkg/server"
 	"github.com/moov-io/metro2/pkg/utils"
 	"github.com/spf13/cobra"
 )
 
 var (
 	inputFile = ""
-	rawData   = ""
+	lines     []string
 )
-
-var WebCmd = &cobra.Command{
-	Use:   "web",
-	Short: "Launches web server",
-	Long:  "Launches web server",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		port, _ := cmd.Flags().GetString("port")
-		fmt.Println("Starting web server on port ", port)
-		listen := "0.0.0.0:" + port
-		h, _ := server.ConfigureHandlers()
-		test, _ := cmd.Flags().GetBool("test")
-		if !test {
-			err := http.ListenAndServe(listen, h)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	},
-}
 
 var Validate = &cobra.Command{
 	Use:   "validator",
 	Short: "Validate metro file",
 	Long:  "Validate an incoming metro file",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		_, err := file.CreateFile([]byte(rawData))
+		_, err := file.CreateFile(lines)
 		if err != nil {
 			return err
 		}
-
-		fmt.Println(utils.ColorGreen + "the file is valid" + utils.ColorReset)
 		return nil
 	},
 }
@@ -77,7 +53,7 @@ var Print = &cobra.Command{
 			}
 		}
 
-		f, err := file.CreateFile([]byte(rawData))
+		f, err := file.CreateFile(lines)
 		if err != nil {
 			return err
 		}
@@ -128,7 +104,7 @@ var Convert = &cobra.Command{
 			}
 		}
 
-		mf, err := file.CreateFile([]byte(rawData))
+		mf, err := file.CreateFile(lines)
 		if err != nil {
 			return err
 		}
@@ -211,7 +187,7 @@ var rootCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
-			rawData = utils.ReadFile(f)
+			lines = utils.ReadFile(f)
 		}
 
 		return nil
@@ -219,8 +195,6 @@ var rootCmd = &cobra.Command{
 }
 
 func initRootCmd() {
-	WebCmd.Flags().String("port", "8080", "port of the web server")
-	WebCmd.Flags().BoolP("test", "t", false, "test server")
 
 	Convert.Flags().String("format", "json", "format of metro file(required)")
 	Convert.Flags().String("type", "", "file type (character or packed)")
@@ -232,7 +206,6 @@ func initRootCmd() {
 
 	rootCmd.SilenceUsage = true
 	rootCmd.PersistentFlags().StringVar(&inputFile, "input", "", "input file (default is $PWD/metro.json)")
-	rootCmd.AddCommand(WebCmd)
 	rootCmd.AddCommand(Convert)
 	rootCmd.AddCommand(Print)
 	rootCmd.AddCommand(Validate)

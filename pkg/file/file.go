@@ -9,6 +9,7 @@ import (
 	"github.com/moov-io/base/log"
 	"github.com/moov-io/metro2/pkg/lib"
 	"github.com/moov-io/metro2/pkg/utils"
+	"strings"
 )
 
 // General file interface
@@ -21,7 +22,7 @@ type File interface {
 	GetDataRecords() []lib.Record
 	GeneratorTrailer() (lib.Record, error)
 
-	Parse(record string) error
+	Parse(lines []string) error
 	String(newline bool) string
 	Validate() error
 }
@@ -58,7 +59,9 @@ func NewFile(format string) (File, error) {
 }
 
 // CreateFile attempts to parse raw metro2 file contents
-func CreateFile(buf []byte) (File, error) {
+func CreateFile(lines []string) (File, error) {
+	rawData := strings.Join(lines, "")
+	buf := []byte(rawData)
 	fileFormat, dataType, err := getFileInformation(buf)
 	if err != nil {
 		return nil, err
@@ -67,7 +70,7 @@ func CreateFile(buf []byte) (File, error) {
 	if *dataType == utils.MessageJsonFormat {
 		err = json.Unmarshal(buf, f)
 	} else {
-		err = f.Parse(string(buf))
+		err = f.Parse(lines)
 	}
 
 	return f, err

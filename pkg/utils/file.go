@@ -11,15 +11,14 @@ import (
 )
 
 // File Read
-func ReadFile(f *os.File) string {
+func ReadFile(f *os.File) []string {
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
 	var lines []string
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
-
-	return strings.Join(lines, "")
+	return lines
 }
 
 // Variable block check
@@ -60,6 +59,12 @@ func IsMetroFile(s string) bool {
 	if len(s) < packedRecordLength {
 		return false
 	}
+
+	return IsHeaderRecord(s)
+}
+
+// Header record check
+func IsHeaderRecord(s string) bool {
 	if s[4:10] == headerIdentifier || s[8:14] == headerIdentifier {
 		return true
 	}
@@ -68,9 +73,6 @@ func IsMetroFile(s string) bool {
 
 // Trailer record check
 func IsTrailerRecord(s string) bool {
-	if len(s) < packedRecordLength {
-		return false
-	}
 	if s[4:11] == trailerIdentifier || s[8:15] == trailerIdentifier {
 		return true
 	}
