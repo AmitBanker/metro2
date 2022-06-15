@@ -243,6 +243,7 @@ func (f *fileInstance) Parse(lines []string) error {
 				isErrorPresent = true
 				noOfErrorRecords++
 				s := "DATA RECORD-" + strconv.Itoa(i) + " " + err.Error()
+				allErrors = append(allErrors, s)
 				fmt.Println(utils.ColorRed + s + utils.ColorReset)
 			} else {
 				fmt.Println(utils.ColorGreen + "DATA RECORD-" + strconv.Itoa(i) + " VALIDATION COMPLETED WITH NO ERRORS" + utils.ColorReset)
@@ -256,7 +257,7 @@ func (f *fileInstance) Parse(lines []string) error {
 	fmt.Println("TOTAL DATA RECORDS PRESENT WITH NO ERROR - " + strconv.Itoa(noOfRecords-noOfErrorRecords))
 	fmt.Println("TOTAL DATA RECORDS WITH ERROR - " + strconv.Itoa(noOfErrorRecords))
 	for i := 0; i < len(allErrors); i++ {
-		fmt.Println(utils.ColorRed + strings.ToLower(allErrors[i]))
+		fmt.Println(utils.ColorRed + strings.ToLower(allErrors[i]) + utils.ColorReset)
 	}
 	fmt.Println(utils.ColorYellow + "###############################################" + utils.ColorReset)
 	if !isErrorPresent {
