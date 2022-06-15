@@ -285,6 +285,59 @@ func (f *fileInstance) parseAndValidateTrailerRecord(record string) {
 		}
 	}
 
+	var information *lib.TrailerInformation
+	if f.format == utils.PackedFileFormat {
+		information, err = f.generatorPackedTrailer()
+		if err != nil {
+			trailerError = true
+			if !contains(allErrors, err.Error()) {
+				allErrors = append(allErrors, err.Error())
+				fmt.Println(utils.ColorRed + err.Error() + utils.ColorReset)
+			}
+		}
+	} else {
+		information, err = f.generatorTrailer()
+		if err != nil {
+			trailerError = true
+			if !contains(allErrors, err.Error()) {
+				allErrors = append(allErrors, err.Error())
+				fmt.Println(utils.ColorRed + err.Error() + utils.ColorReset)
+			}
+		}
+	}
+
+	fromFields := reflect.ValueOf(information).Elem()
+	toFields := reflect.ValueOf(f.Trailer).Elem()
+	for i := 0; i < fromFields.NumField(); i++ {
+		fieldName := fromFields.Type().Field(i).Name
+
+		// skip local variable
+		if !unicode.IsUpper([]rune(fieldName)[0]) {
+			continue
+		}
+		switch fieldName {
+		case "BlockDescriptorWord", "RecordDescriptorWord", "RecordIdentifier":
+			continue
+		}
+
+		fromField := fromFields.FieldByName(fieldName)
+		toField := toFields.FieldByName(fieldName)
+		if !fromField.IsValid() || !toField.IsValid() {
+			s := utils.NewErrInvalidValueOfField(fieldName, "trailer record").Error()
+			if !contains(allErrors, s) {
+				allErrors = append(allErrors, s)
+				fmt.Println(utils.ColorRed + s + utils.ColorReset)
+			}
+		}
+		if fromField.Interface() != toField.Convert(fromField.Type()).Interface() {
+			s := utils.NewErrInvalidValueOfField(fieldName, "trailer record").Error()
+			if !contains(allErrors, s) {
+				allErrors = append(allErrors, s)
+				fmt.Println(utils.ColorRed + s + utils.ColorReset)
+			}
+		}
+	}
+
 	if !trailerError {
 		fmt.Println(utils.ColorGreen + "TRAILER RECORD VALIDATION COMPLETED WITH NO ERRORS" + utils.ColorReset)
 	}
@@ -324,7 +377,7 @@ func (f *fileInstance) parseAndValidateDataRecord(record string, recordNo int) {
 		}
 	}
 	f.Bases = append(f.Bases, base)
-	
+
 	fmt.Println(utils.ColorGreen + "DATA RECORD-" + strconv.Itoa(recordNo) + " VALIDATION COMPLETED WITH NO ERRORS" + utils.ColorReset)
 }
 
